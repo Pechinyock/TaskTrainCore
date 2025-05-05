@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrainCore", "Core\TaskTrainCore.csproj", "{8C673479-AB58-4794-AD95-89A86B841B7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostgreStorage", "PostgreStorage\PostgreStorage.csproj", "{9122D732-AB67-4F31-A5E5-1E4FEAA48510}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{8C673479-AB58-4794-AD95-89A86B841B7B}.Staging|Any CPU.Build.0 = Staging|Any CPU
 		{8C673479-AB58-4794-AD95-89A86B841B7B}.Test|Any CPU.ActiveCfg = Test|Any CPU
 		{8C673479-AB58-4794-AD95-89A86B841B7B}.Test|Any CPU.Build.0 = Test|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Staging|Any CPU.ActiveCfg = Debug|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Staging|Any CPU.Build.0 = Debug|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Test|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -48,8 +48,11 @@
 
 	<ItemGroup>
 		<Content Include="../.editorconfig" />
-
 		<None Remove="Directory.Build.props" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Source\" />
 	</ItemGroup>
 
 </Project>
