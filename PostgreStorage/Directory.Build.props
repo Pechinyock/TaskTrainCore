@@ -1,0 +1,8 @@
+<Project>
+	<PropertyGroup>
+		<TargetFrameworkVersion>net9.0</TargetFrameworkVersion>
+		<OutDir>..\_bin\$(Configuration)_$(TargetFrameworkVersion)\</OutDir>
+		<PublishDir>..\_publish\$(Configuration)_$(TargetFrameworkVersion)\</PublishDir>
+		<BaseIntermediateOutputPath>..\_bin-int\$(MSBuildProjectName)</BaseIntermediateOutputPath>
+	</PropertyGroup>
+</Project>
