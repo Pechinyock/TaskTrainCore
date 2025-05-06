@@ -2,3 +2,5 @@
 _bin
 _bin-int
 _pack
+**/bin/
+**/obj/

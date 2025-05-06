@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostgreStorage", "PostgreStorage\PostgreStorage.csproj", "{9122D732-AB67-4F31-A5E5-1E4FEAA48510}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5D5A2EE2-E32B-4615-A0F8-D5F6D1E83372}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrainCore.Tests", "Tests\TaskTrainCore.Tests\TaskTrainCore.Tests.csproj", "{20E695C3-6ECC-4EB5-AE93-9718573D736B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,8 +35,19 @@ Global
 		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Staging|Any CPU.Build.0 = Debug|Any CPU
 		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Test|Any CPU.ActiveCfg = Debug|Any CPU
 		{9122D732-AB67-4F31-A5E5-1E4FEAA48510}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Staging|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Staging|Any CPU.Build.0 = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Test|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B} = {5D5A2EE2-E32B-4615-A0F8-D5F6D1E83372}
 	EndGlobalSection
 EndGlobal
