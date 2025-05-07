@@ -30,7 +30,6 @@ public abstract class StorageUpdaterBase
         var currentVersion = GetCurrentVersion();
         var lastVersion = GetLastVersion();
 
-        #region Corner cases 
         /* Data strorage unavailable */
         if (!IsAvailable())
         {
@@ -39,22 +38,24 @@ public abstract class StorageUpdaterBase
             return;
         }
 
-        /* taget version higher that last available */
-        if (lastVersion < targetVersion)
+        /* taget version higher than last available */
+        if (targetVersion > lastVersion)
         {
-            OnPreValidationFailed?.Invoke($"{failedMessagePrefix} target version coudn't be higher than last version");
+            OnPreValidationFailed?.Invoke($"{failedMessagePrefix} taget version higher than last available");
             return;
         }
 
-        /* migrations lista is not empty */
-        var mentToInstall = GetMigrations();
-        var migrations = mentToInstall?.ToArray();
+        var allMigrations = GetMigrations();
+        var migrations = allMigrations?.ToArray();
+
+        /* migrations list is not empty */
         if (migrations is null || migrations.Length == 0)
         {
             OnPreValidationFailed?.Invoke($"{failedMessagePrefix} couldn't get migration list");
             return;
         }
 
+        /* current version migrations count missmach */
         if (migrations.Length < currentVersion)
         {
             OnPreValidationFailed?.Invoke($"{failedMessagePrefix} migraions count couldn't be lower than current version" +
@@ -68,39 +69,52 @@ public abstract class StorageUpdaterBase
             OnPreValidationFailed?.Invoke($"{failedMessagePrefix} Datastorage already at version: {targetVersion}");
             return;
         }
-        #endregion
 
         var isUpDirection = currentVersion < targetVersion;
-        uint totalInstalled = 0;
-        var startAt = currentVersion != 0
-            ? currentVersion
-            : 0;
 
-        while (currentVersion != targetVersion)
+        var iterator = currentVersion;
+        var loopThreshold = targetVersion;
+
+        if (iterator >= migrations.Length) 
         {
-            var migrationToInstall = migrations[startAt];
+            iterator = (uint)migrations.Length - 1;
+            loopThreshold -= 1;
+        }
+        
+        uint totalInstalled = 0;
+
+        while (iterator != loopThreshold)
+        {
+            var migrationToInstall = migrations[iterator];
+            if (migrationToInstall is null) 
+            {
+                OnInstallMigrationFailed?.Invoke("Migration list contains 'null' instance");
+                return;
+            }
+
             var queryText = isUpDirection
-                ? migrationToInstall.UpgradeQueryText
-                : migrationToInstall.DowngradeQueryText;
+                ? migrationToInstall.InstallQueryText
+                : migrationToInstall.UninstallQueryText;
 
             try
             {
                 var name = migrationToInstall.Name;
                 ExecuteMigarionQuery(queryText);
-                currentVersion = isUpDirection
-                    ? currentVersion + 1
-                    : currentVersion - 1;
-                OnInstallMigrationSucceed?.Invoke($"{migrationToInstall.Name} installed successfully");
+                iterator = isUpDirection
+                    ? ++iterator
+                    : --iterator;
+
+                OnInstallMigrationSucceed?.Invoke($"{migrationToInstall.Name}");
                 ++totalInstalled;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 OnInstallMigrationFailed?.Invoke(ex.Message);
                 throw;
             }
         }
 
-        OnUpdateInstalledSucceed?.Invoke($"Successfully update storage to version: {targetVersion}"
+        OnUpdateInstalledSucceed?.Invoke($"{targetVersion}"
             , totalInstalled
         );
     }
