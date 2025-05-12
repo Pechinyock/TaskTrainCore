@@ -52,7 +52,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Source\" />
+	  <PackageReference Include="Npgsql" Version="9.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Core\Core.csproj" />
 	</ItemGroup>
 
 </Project>
