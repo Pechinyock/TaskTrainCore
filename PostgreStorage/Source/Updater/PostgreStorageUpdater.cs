@@ -2,40 +2,65 @@
 
 namespace TaskTrain.Core.Postgres;
 
-public sealed class PostgreStorageUpdater : StorageUpdaterBase
+public sealed class PostgreStorageUpdater : SQLStorageUpdaterBase
 {
-    private readonly NpgsqlDataSource _dataSource;
+    private const string POSTGRES_DEFAULT_DATABASE_NAME = "postgres";
 
-    public PostgreStorageUpdater(string connectionString) : base(connectionString)
+    private readonly NpgsqlDataSource _dataSource;
+    private readonly DatabaseMetaInfoProvider _databaseMetaInfo;
+    private readonly string _homeDbName;
+
+    public PostgreStorageUpdater(string homeDbName
+        , string pgConnectionString
+        , string serviceConnectionString) : base(serviceConnectionString)
     {
-        _dataSource = NpgsqlDataSource.Create(connectionString);
+        var postgresDataSource = NpgsqlDataSource.Create(pgConnectionString);
+        _homeDbName = homeDbName;
+
+        _dataSource = NpgsqlDataSource.Create(serviceConnectionString);
+
+        _databaseMetaInfo = new DatabaseMetaInfoProvider(postgresDataSource, _dataSource);
+        if (!_databaseMetaInfo.IsDatabaseExists(homeDbName)) 
+        {
+            _databaseMetaInfo.InitializeDatabase(homeDbName);
+        }
     }
 
     protected override void ExecuteMigarionQuery(string queryText)
     {
-        using (var cmd = _dataSource.CreateCommand("select 1;")) 
+        using (var cmd = _dataSource.CreateCommand(queryText)) 
         {
-
         }
     }
 
     protected override uint GetCurrentVersion()
     {
-        throw new NotImplementedException();
+        return 0;
     }
 
     protected override uint GetLastVersion()
     {
-        throw new NotImplementedException();
+        return 2;
     }
 
     protected override IMigration[] GetMigrations()
     {
-        throw new NotImplementedException();
+        return new IMigration[] {};
     }
 
     protected override bool IsAvailable()
     {
-        throw new NotImplementedException();
+        try
+        {
+            using (var cmd = _dataSource.CreateCommand("select 1;"))
+            {
+
+            }
+            return true;
+        }
+        catch 
+        {
+            return false;
+        }
     }
 }

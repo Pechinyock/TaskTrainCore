@@ -1,6 +1,6 @@
 ﻿namespace TaskTrain.Core;
 
-public abstract class StorageUpdaterBase
+public abstract class SQLStorageUpdaterBase
 {
     public event Action<string, uint> OnUpdateInstalledSucceed;
     public event Action<string> OnPreValidationFailed;
@@ -9,7 +9,7 @@ public abstract class StorageUpdaterBase
 
     protected readonly string _connectionString;
 
-    protected StorageUpdaterBase(string connectionString)
+    protected SQLStorageUpdaterBase(string connectionString)
     {
         if (String.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentNullException(nameof(connectionString));

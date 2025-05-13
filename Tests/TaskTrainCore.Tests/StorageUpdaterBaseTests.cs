@@ -23,7 +23,7 @@ public class StorageUpdaterTests
 
     }
 
-    internal sealed class StorageUpdaterPretender : StorageUpdaterBase
+    internal sealed class StorageUpdaterPretender : SQLStorageUpdaterBase
     {
         private uint _currentVersion;
         private uint _lastVersion;
