@@ -49,6 +49,7 @@
 	<ItemGroup>
 		<Content Include="../.editorconfig" />
 		<None Remove="Directory.Build.props" />
+		<InternalsVisibleTo Include="PostgreStroage.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>

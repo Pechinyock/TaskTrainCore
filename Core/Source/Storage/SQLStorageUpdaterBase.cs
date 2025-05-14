@@ -8,23 +8,43 @@ public abstract class SQLStorageUpdaterBase
     public event Action<string> OnInstallMigrationSucceed;
 
     protected readonly string _connectionString;
+    protected readonly IMigrationPorvider _migrationsProvider;
 
-    protected SQLStorageUpdaterBase(string connectionString)
+    protected SQLStorageUpdaterBase(string connectionString, IMigrationPorvider migrationPorvider)
     {
         if (String.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentNullException(nameof(connectionString));
 
+        if(migrationPorvider is null)
+            throw new ArgumentNullException(nameof(migrationPorvider));
+
         _connectionString = connectionString;
+        _migrationsProvider = migrationPorvider;
+    }
+
+    protected SQLStorageUpdaterBase(IStorageConnection connection) 
+    {
+        if(connection is null)
+            throw new ArgumentNullException(nameof(connection));
+
+        if(String.IsNullOrEmpty(connection.ConnectionString))
+            throw new ArgumentNullException(nameof(connection.ConnectionString));
+
+        _connectionString = connection.ConnectionString;
     }
 
     protected abstract bool IsAvailable();
     protected abstract uint GetCurrentVersion();
     protected abstract uint GetLastVersion();
-    protected abstract IMigration[] GetMigrations();
     protected abstract void ExecuteMigarionQuery(string queryText);
+    protected abstract bool IsPrepearedToUpdate();
+    protected abstract void PrepareToUpdate();
 
     public void UpdateStorage(uint targetVersion)
     {
+        if (!IsPrepearedToUpdate())
+            PrepareToUpdate();
+
         const string failedMessagePrefix = "Failed to update storage:";
 
         var currentVersion = GetCurrentVersion();
@@ -45,7 +65,7 @@ public abstract class SQLStorageUpdaterBase
             return;
         }
 
-        var allMigrations = GetMigrations();
+        var allMigrations = _migrationsProvider.GetMigrations(currentVersion, targetVersion);
         var migrations = allMigrations?.ToArray();
 
         /* migrations list is not empty */
@@ -80,7 +100,7 @@ public abstract class SQLStorageUpdaterBase
             iterator = (uint)migrations.Length - 1;
             loopThreshold -= 1;
         }
-        
+
         uint totalInstalled = 0;
 
         while (iterator != loopThreshold)

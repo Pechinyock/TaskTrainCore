@@ -4,23 +4,17 @@ namespace TaskTrainCore.Tests;
 
 public class StorageUpdaterTests
 {
-    internal sealed class MigrationPretender : IMigration
+    internal sealed class MigrationProviderPretender : IMigrationPorvider
     {
-        private readonly string _sqlUpText;
-        private readonly string _sqlDownText;
-        private readonly string _name;
+        private readonly IEnumerable<SQLMigration> _migrations;
 
-        public string Name => _name;
-        public string UninstallQueryText => _sqlDownText;
-        public string InstallQueryText => _sqlUpText;
-
-        public MigrationPretender(string name, string sqlText, string sqlDownText)
+        public MigrationProviderPretender(IEnumerable<SQLMigration> migrations)
         {
-            _sqlUpText = sqlText;
-            _sqlDownText = sqlDownText;
-            _name = name;
+            _migrations = migrations;
         }
 
+        public IEnumerable<SQLMigration> GetMigrations(uint currentVersion, uint targetVersion)
+            => _migrations;
     }
 
     internal sealed class StorageUpdaterPretender : SQLStorageUpdaterBase
@@ -29,33 +23,36 @@ public class StorageUpdaterTests
         private uint _lastVersion;
         private bool _isConnected;
 
-        private IMigration[] _migrations;
         private Action _executeMigrationQueryLogic;
+        private IMigrationPorvider _migrationPorvider;
 
         public StorageUpdaterPretender(string connectionString
-            , IMigration[] migrations
             , bool isConnected
             , uint currentVersion
             , uint lastVersion
-            , Action executeMigrationQueryLogic = null) : base(connectionString)
+            , IMigrationPorvider migrationPorvider
+            , Action executeMigrationQueryLogic = null) : base(connectionString, migrationPorvider)
         {
             _currentVersion = currentVersion;
             _lastVersion = lastVersion;
-            _migrations = migrations;
             _isConnected = isConnected;
+            _migrationPorvider = migrationPorvider;
             _executeMigrationQueryLogic = executeMigrationQueryLogic;
+            
         }
 
         protected override bool IsAvailable() => _isConnected;
         protected override uint GetCurrentVersion() => _currentVersion;
         protected override uint GetLastVersion() => _lastVersion;
-        protected override IMigration[] GetMigrations() => _migrations;
 
         protected override void ExecuteMigarionQuery(string queryText)
         {
             _executeMigrationQueryLogic?.Invoke();
         }
 
+        protected override bool IsPrepearedToUpdate() => true;
+
+        protected override void PrepareToUpdate() { }
     }
 
     [Fact]
@@ -63,25 +60,25 @@ public class StorageUpdaterTests
     {
         var exception = Record.Exception(() =>
         {
-            var migrations = new IMigration[]
+            var migrations = new SQLMigration[]
             {
-                new MigrationPretender("1", "up 1", "down 1"),
-                new MigrationPretender("2", "up 2", "down 2"),
-                new MigrationPretender("3", "up 3", "down 3"),
-                new MigrationPretender("4", "up 4", "down 4"),
-                new MigrationPretender("5", "up 5", "down 5"),
-                new MigrationPretender("6", "up 6", "down 6"),
-                new MigrationPretender("7", "up 7", "down 7"),
-                new MigrationPretender("8", "up 8", "down 8"),
-                new MigrationPretender("9", "up 9", "down 9"),
-                new MigrationPretender("10", "up 10", "down 10"),
+                new(){ Name = "1", InstallQueryText = "up 1", UninstallQueryText="down 1" },
+                new(){ Name = "2", InstallQueryText = "up 2", UninstallQueryText = "down 2" },
+                new(){ Name = "3", InstallQueryText = "up 3", UninstallQueryText = "down 3" },
+                new(){ Name = "4", InstallQueryText = "up 4", UninstallQueryText = "down 4" },
+                new(){ Name = "5", InstallQueryText = "up 5", UninstallQueryText = "down 5" },
+                new(){ Name = "6", InstallQueryText = "up 6", UninstallQueryText = "down 6" },
+                new(){ Name = "7", InstallQueryText = "up 7", UninstallQueryText = "down 7" },
+                new(){ Name = "8", InstallQueryText = "up 8", UninstallQueryText = "down 8" },
+                new(){ Name = "9", InstallQueryText = "up 9", UninstallQueryText = "down 9" },
+                new(){ Name = "10", InstallQueryText = "up 10", UninstallQueryText = "down 10" },
             };
-
+            var migrationProvider = new MigrationProviderPretender(migrations);
             var storageUpdaterPretender = new StorageUpdaterPretender("fqwer"
-                , migrations
                 , true
                 , 0
-                , 10);
+                , 10
+                , migrationProvider);
         });
         Assert.Null(exception);
     }
@@ -136,10 +133,15 @@ public class StorageUpdaterTests
     internal void StroageUpdate_Order_Correct(uint currentVersion, uint targetVersion, int migrationCount, int[] expectedOrder)
     {
         int iterator = 0;
-        var migrations = new IMigration[migrationCount];
+        var migrations = new SQLMigration[migrationCount];
         while (migrationCount > iterator)
         {
-            migrations[iterator] = new MigrationPretender($"{iterator}", $"up {iterator}", $"down {iterator}");
+            migrations[iterator] = new SQLMigration
+            {
+                Name = $"{iterator}",
+                InstallQueryText = $"up {iterator}",
+                UninstallQueryText = $"down {iterator}"
+            };
             ++iterator;
         }
 
@@ -152,7 +154,14 @@ public class StorageUpdaterTests
             ++migrationInstallationIteration;
         };
 
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, currentVersion, 10);
+        var migrationProvider = new MigrationProviderPretender(migrations);
+
+        var storageUpdater = new StorageUpdaterPretender("erdter"
+            , true
+            , currentVersion
+            , 10
+            , migrationProvider
+        );
 
         storageUpdater.OnInstallMigrationSucceed += onMigrationInstalled;
 
@@ -164,8 +173,14 @@ public class StorageUpdaterTests
     [Fact]
     internal void StorageIsNotAvailable_Occurs()
     {
-        var migrations = new IMigration[10];
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, false, 0, 10);
+        var migrations = new SQLMigration[10];
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter"
+            , false
+            , 0
+            , 10
+            , migrationProvider
+        );
         bool validationOccurs = false;
         storageUpdater.OnPreValidationFailed += (reason) =>
         {
@@ -180,8 +195,9 @@ public class StorageUpdaterTests
     [Fact]
     internal void TargetVersionHigherThanItIsPossible_Occurs()
     {
-        var migrations = new IMigration[10];
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, 0, 10);
+        var migrations = new SQLMigration[10];
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, 0, 10, migrationProvider);
         bool validationOccurs = false;
         storageUpdater.OnPreValidationFailed += (reason) =>
         {
@@ -194,36 +210,11 @@ public class StorageUpdaterTests
     }
 
     [Fact]
-    internal void MigrationListEmpyOrNull_Occurs()
-    {
-        var migrations = new IMigration[10];
-        var storageUpdater = new StorageUpdaterPretender("erdter", null, true, 0, 10);
-        bool validationOccurs = false;
-        storageUpdater.OnPreValidationFailed += (reason) =>
-        {
-            validationOccurs = true;
-        };
-
-        storageUpdater.UpdateStorage(10);
-        Assert.True(validationOccurs);
-
-        validationOccurs = false;
-
-        var storageUpdater1 = new StorageUpdaterPretender("erdter", new IMigration[0], true, 0, 10);
-        storageUpdater1.OnPreValidationFailed += (reason) =>
-        {
-            validationOccurs = true;
-        };
-
-        storageUpdater1.UpdateStorage(10);
-        Assert.True(validationOccurs);
-    }
-
-    [Fact]
     internal void CurrentVersionEqualTargetVersion_Occurs()
     {
-        var migrations = new IMigration[10];
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, 1, 10);
+        var migrations = new SQLMigration[10];
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, 1, 10, migrationProvider);
         bool validationOccurs = false;
         storageUpdater.OnPreValidationFailed += (reason) =>
         {
@@ -237,8 +228,9 @@ public class StorageUpdaterTests
     [Fact]
     internal void TargetHigherThanLastAvailableVersion_Occurs()
     {
-        var migrations = new IMigration[10];
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, 1, 10);
+        var migrations = new SQLMigration[10];
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, 1, 10, migrationProvider);
         bool validationOccurs = false;
         storageUpdater.OnPreValidationFailed += (reason) =>
         {
@@ -252,21 +244,21 @@ public class StorageUpdaterTests
     [Fact]
     internal void NullMigrationThrow_Occurs()
     {
-        var migrations = new IMigration[]
+        var migrations = new SQLMigration[]
         {
-            new MigrationPretender("1", "up 1", "down 1"),
-            new MigrationPretender("2", "up 2", "down 2"),
-            new MigrationPretender("3", "up 3", "down 3"),
-            new MigrationPretender("4", "up 4", "down 4"),
-            new MigrationPretender("5", "up 5", "down 5"),
+            new(){ Name = "1", InstallQueryText = "up 1", UninstallQueryText="down 1" },
+            new(){ Name = "2", InstallQueryText = "up 2", UninstallQueryText = "down 2" },
+            new(){ Name = "3", InstallQueryText = "up 3", UninstallQueryText = "down 3" },
+            new(){ Name = "4", InstallQueryText = "up 4", UninstallQueryText = "down 4" },
+            new(){ Name = "5", InstallQueryText = "up 5", UninstallQueryText = "down 5" },
             null,
-            new MigrationPretender("7", "up 7", "down 7"),
-            new MigrationPretender("8", "up 8", "down 8"),
-            new MigrationPretender("9", "up 9", "down 9"),
-            new MigrationPretender("10", "up 10", "down 10"),
+            new(){ Name = "7", InstallQueryText = "up 7", UninstallQueryText = "down 7" },
+            new(){ Name = "8", InstallQueryText = "up 8", UninstallQueryText = "down 8" },
+            new(){ Name = "9", InstallQueryText = "up 9", UninstallQueryText = "down 9" },
+            new(){ Name = "10", InstallQueryText = "up 10", UninstallQueryText = "down 10" },
         };
-
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, 0, 10);
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, 0, 10, migrationProvider);
         bool validationOccurs = false;
         storageUpdater.OnInstallMigrationFailed += (reason) =>
         {
@@ -280,15 +272,15 @@ public class StorageUpdaterTests
     [Fact]
     internal void InstallMigration_Failed()
     {
-        var migrations = new IMigration[]
+        var migrations = new SQLMigration[]
         {
-            new MigrationPretender("1", "up 1", "down 1"),
-            new MigrationPretender("2", "up 2", "down 2"),
+            new(){ Name = "1", InstallQueryText = "up 1", UninstallQueryText="down 1" },
+            new(){ Name = "2", InstallQueryText = "up 2", UninstallQueryText = "down 2" },
         };
 
         Action failedInstallation = () => { throw new Exception("failed"); };
-
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, 0, 10, failedInstallation);
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, 0, 10, migrationProvider, failedInstallation);
         bool validationOccurs = false;
         storageUpdater.OnInstallMigrationFailed += (reason) =>
         {
@@ -303,14 +295,19 @@ public class StorageUpdaterTests
     private static void MigrationInstallationTestLogic(uint currentVersion, uint targetVersion, int migrationCount, uint expectedInstalled)
     {
         int iterator = 0;
-        var migrations = new IMigration[migrationCount];
+        var migrations = new SQLMigration[migrationCount];
         while (migrationCount > iterator)
         {
-            migrations[iterator] = new MigrationPretender($"{iterator}", $"up {iterator}", $"down {iterator}");
+            migrations[iterator] = new SQLMigration
+            {
+                Name = $"{iterator}",
+                InstallQueryText = $"up {iterator}",
+                UninstallQueryText = $"down {iterator}"
+            };
             ++iterator;
         }
-
-        var storageUpdater = new StorageUpdaterPretender("erdter", migrations, true, currentVersion, 10);
+        var migrationProvider = new MigrationProviderPretender(migrations);
+        var storageUpdater = new StorageUpdaterPretender("erdter", true, currentVersion, 10, migrationProvider);
         storageUpdater.OnUpdateInstalledSucceed += (text, totalInstalled) =>
         {
             Assert.Equal(expectedInstalled, totalInstalled);

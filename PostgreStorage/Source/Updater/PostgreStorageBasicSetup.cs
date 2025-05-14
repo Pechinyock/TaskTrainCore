@@ -1,9 +1,8 @@
 ﻿using Npgsql;
-using System.Xml;
 
 namespace TaskTrain.Core.Postgres;
 
-internal sealed class DatabaseMetaInfoProvider
+internal sealed class PostgreStorageBasicSetup : SQLStorageBasicSetupBase
 {
     #region Raw sql
 
@@ -58,7 +57,7 @@ $"create database \"{dbName}\"" +
 @$"
 (
    sigle_row bool primary key default true,
-   database_version serial,
+   database_version integer,
    service_version int[],
    constraint sigle_row_constraint check(sigle_row)
 );" +
@@ -71,10 +70,11 @@ $"create database \"{dbName}\"" +
     private readonly NpgsqlDataSource _pgSource;
     private readonly NpgsqlDataSource _serviceSource;
 
-    public DatabaseMetaInfoProvider(NpgsqlDataSource pgSource, NpgsqlDataSource serviceSource)
+    public PostgreStorageBasicSetup(NpgsqlDataSource pgSource, NpgsqlDataSource serviceSource)
     {
         if (pgSource is null)
             throw new ArgumentNullException(nameof(pgSource));
+
         if (serviceSource is null)
             throw new ArgumentNullException(nameof(serviceSource));
 
@@ -82,7 +82,7 @@ $"create database \"{dbName}\"" +
         _serviceSource = serviceSource;
     }
 
-    internal bool IsDatabaseExists(string databaseName)
+    public override bool IsServiceDatabaseExists(string databaseName)
     {
         if (String.IsNullOrWhiteSpace(databaseName))
             throw new ArgumentNullException(nameof(databaseName));
@@ -97,7 +97,7 @@ $"create database \"{dbName}\"" +
         }
     }
 
-    internal void InitializeDatabase(string databaseName)
+    public override void InitializeBasicSetup(string databaseName)
     {
         if (String.IsNullOrWhiteSpace(databaseName))
             throw new ArgumentNullException(nameof(databaseName));
@@ -121,7 +121,7 @@ $"create database \"{dbName}\"" +
 
         var createServceDbQuery = RawSQL.CreateServiceHomeDatabase(databaseName);
 
-        using (var cmd = _pgSource.CreateCommand(createServceDbQuery)) 
+        using (var cmd = _pgSource.CreateCommand(createServceDbQuery))
         {
             cmd.ExecuteNonQuery();
         }
@@ -133,11 +133,9 @@ $"create database \"{dbName}\"" +
         }
 
         var createVersionTabeQuery = RawSQL.CreateVersionsTable();
-        using (var cmd = _serviceSource.CreateCommand(createVersionTabeQuery)) 
+        using (var cmd = _serviceSource.CreateCommand(createVersionTabeQuery))
         {
             cmd.ExecuteNonQuery();
         }
-
     }
-
 }
