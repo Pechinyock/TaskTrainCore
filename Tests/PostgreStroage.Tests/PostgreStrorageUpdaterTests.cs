@@ -17,7 +17,7 @@ public class PostgreStrorageUpdaterTests
     }
 
     [Fact]
-    public void UpdaterConnectByConnectionClass_Success() 
+    public void UpdaterConnectByConnectionClass_Success()
     {
         var postgresConnection = new PostgreStorageConnection(host: "localhost"
             , port: 7777
@@ -31,8 +31,57 @@ public class PostgreStrorageUpdaterTests
             , userName: "admin"
             , password: "admin"
         );
+        var provider = new FileSystemMigrationProvider(MigrationsPaths.GetScenaio(1));
+        var updater = new PostgreStorageUpdater(postgresConnection, userHubConnection, provider);
 
-        var updater = new PostgreStorageUpdater(postgresConnection, userHubConnection);
-        updater.UpdateStorage(3);
+        var lastVersion = provider.GetLastVersion();
+        updater.UpdateStorage(lastVersion);
+    }
+
+    [Fact]
+    public void IsAvailable_Failed()
+    {
+        var postgresConnection = new PostgreStorageConnection(host: "localhost"
+            , port: 7777
+            , databaseName: "postgres"
+            , userName: "postgres"
+            , password: "123456"
+        );
+
+        var userHubConnection = new PostgreStorageConnection(host: "localhost"
+            , port: 7777
+            , databaseName: "user-hub"
+            , userName: "admin"
+            , password: "admin"
+        );
+
+        var provider = new FileSystemMigrationProvider(MigrationsPaths.GetScenaio(1));
+        var updater = new PostgreStorageUpdater(postgresConnection, userHubConnection, provider);
+
+        Action<string> DbNotAvailabe = (error) =>
+        {
+        };
+
+        var lastVersion = provider.GetLastVersion();
+
+        updater.OnPreValidationFailed += DbNotAvailabe;
+        updater.UpdateStorage(lastVersion);
+        updater.OnPreValidationFailed -= DbNotAvailabe;
+    }
+
+    [Fact]
+    public void GetCurrentVersion_Test()
+    {
+        var userHubConnection = new PostgreStorageConnection(host: "localhost"
+            , port: 7777
+            , databaseName: "user-hub"
+            , userName: "admin"
+            , password: "admin"
+        );
+
+        var metaInfoProvider = new MetaInfoRepository(userHubConnection);
+
+        var dbVersion = metaInfoProvider.GetDatabaseVersion();
+        var serviceVersion = metaInfoProvider.GetServiceVersion();
     }
 }

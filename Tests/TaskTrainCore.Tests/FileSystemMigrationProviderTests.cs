@@ -6,25 +6,24 @@ namespace TaskTrainCore.Tests;
 
 public class FileSystemMigrationProviderTests
 {
-    private static string TestOutDirPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-    private static string MigrationsValidPath = Path.Combine(TestOutDirPath, "SuccessCase");
-    private static string ValidUpMigrationsPath = Path.Combine(MigrationsValidPath, "up");
-    private static string ValidDownMigrationsPath = Path.Combine(MigrationsValidPath, "down");
+    private static string ValidStructureMigrationsPath = FileSystemMigrationPaths.ValidStructureMigrations;
+    private static string WithWrongNameFormatMigrationsPath = FileSystemMigrationPaths.WrongNameMigrations;
+    private static string WithWrongOrderMigrationsPath = FileSystemMigrationPaths.WrongOrderMigrations;
+    private static string WithWrondCountMigrationsPath = FileSystemMigrationPaths.WrongCountMigrations;
 
     [Fact]
     public void InstanceCreating_Success() 
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
     }
 
     [Fact]
     public void GetMigrationList_NotNull_Success()
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
         var migrations = provider.GetMigrations(0, 3);
         Assert.NotNull(migrations);
     }
-
 
     [Theory]
     [InlineData(0, 1, 1)]
@@ -39,7 +38,7 @@ public class FileSystemMigrationProviderTests
     [InlineData(3, 4, 1)]
     public void GetMigrationList_Up_Count_Correct(uint startVersion, uint targetVersion, int expectedCount)
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
         var migrations = provider.GetMigrations(startVersion, targetVersion);
         Assert.Equal(expectedCount, migrations.Count());
     }
@@ -57,7 +56,7 @@ public class FileSystemMigrationProviderTests
     [InlineData(0, 4, new int[] { 1, 2, 3, 4 })]
     public void GetMigrationList_Up_Order_Correct(uint startVersion, uint targetVersion, int[] expectedOrder)
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
         var migrations = provider.GetMigrations(startVersion, targetVersion).ToArray();
         var resultOrder = new int[migrations.Length];
 
@@ -88,7 +87,7 @@ public class FileSystemMigrationProviderTests
     [InlineData(4, 3, 1)]
     public void GetMigrationList_Down_Count_Correct(uint startVersion, uint targetVersion, int expectedCount)
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
         var migrations = provider.GetMigrations(startVersion, targetVersion);
         Assert.Equal(expectedCount, migrations.Count());
     }
@@ -106,7 +105,7 @@ public class FileSystemMigrationProviderTests
     [InlineData(4, 0, new int[] { 4, 3, 2, 1 })]
     public void GetMigrationList_Down_Order_Correct(uint startVersion, uint targetVersion, int[] expectedOrder)
     {
-        var provider = new FileSystemMigrationProvider(MigrationsValidPath);
+        var provider = new FileSystemMigrationProvider(ValidStructureMigrationsPath);
         var migrations = provider.GetMigrations(startVersion, targetVersion).ToArray();
         var resultOrder = new int[migrations.Length];
 
@@ -122,6 +121,46 @@ public class FileSystemMigrationProviderTests
         {
             Assert.Equal(expectedOrder[i], resultOrder[i]);
         }
+    }
+
+    [Fact]
+    public void GetMigrationList_Up_NameFormat_Wrong() 
+    {
+        Assert.Throws<FormatException>(() => 
+        {
+            var provider = new FileSystemMigrationProvider(WithWrongNameFormatMigrationsPath);
+            var list = provider.GetMigrations(0, 4);
+        });
+    }
+
+    [Fact]
+    public void GetMigrationList_Down_NameFormat_Wrong()
+    {
+        Assert.Throws<FormatException>(() =>
+        {
+            var provider = new FileSystemMigrationProvider(WithWrongNameFormatMigrationsPath);
+            var list = provider.GetMigrations(4, 0);
+        });
+    }
+
+    [Fact]
+    public void GetMigrationList_NameOrder_Wrong()
+    {
+        Assert.Throws<FormatException>(() =>
+        {
+            var provider = new FileSystemMigrationProvider(WithWrongOrderMigrationsPath);
+            var list = provider.GetMigrations(4, 0);
+        });
+    }
+
+    [Fact]
+    public void GetMigrationList_UpAndDown_CountMismach()
+    {
+        Assert.Throws<FormatException>(() =>
+        {
+            var provider = new FileSystemMigrationProvider(WithWrondCountMigrationsPath);
+            var list = provider.GetMigrations(4, 0);
+        });
     }
 
     private static int ExtractMigrationOrderNumber(string name)

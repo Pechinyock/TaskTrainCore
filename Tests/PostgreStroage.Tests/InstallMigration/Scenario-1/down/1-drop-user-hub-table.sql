@@ -1,0 +1,1 @@
+﻿select 'it is minmal allowed version'

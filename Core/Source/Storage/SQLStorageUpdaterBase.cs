@@ -8,9 +8,9 @@ public abstract class SQLStorageUpdaterBase
     public event Action<string> OnInstallMigrationSucceed;
 
     protected readonly string _connectionString;
-    protected readonly IMigrationPorvider _migrationsProvider;
+    protected readonly IMigrationsPorvider _migrationsProvider;
 
-    protected SQLStorageUpdaterBase(string connectionString, IMigrationPorvider migrationPorvider)
+    protected SQLStorageUpdaterBase(string connectionString, IMigrationsPorvider migrationPorvider)
     {
         if (String.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentNullException(nameof(connectionString));
@@ -22,7 +22,7 @@ public abstract class SQLStorageUpdaterBase
         _migrationsProvider = migrationPorvider;
     }
 
-    protected SQLStorageUpdaterBase(IStorageConnection connection) 
+    protected SQLStorageUpdaterBase(IStorageConnection connection, IMigrationsPorvider migrationPorvider) 
     {
         if(connection is null)
             throw new ArgumentNullException(nameof(connection));
@@ -31,25 +31,21 @@ public abstract class SQLStorageUpdaterBase
             throw new ArgumentNullException(nameof(connection.ConnectionString));
 
         _connectionString = connection.ConnectionString;
+        _migrationsProvider = migrationPorvider;
     }
 
-    protected abstract bool IsAvailable();
-    protected abstract uint GetCurrentVersion();
-    protected abstract uint GetLastVersion();
+    public abstract bool IsAvailable();
+    public abstract uint GetCurrentVersion();
+
     protected abstract void ExecuteMigarionQuery(string queryText);
     protected abstract bool IsPrepearedToUpdate();
     protected abstract void PrepareToUpdate();
+    protected abstract void IncrementVersion();
+    protected abstract void DecrementVersion();
 
     public void UpdateStorage(uint targetVersion)
     {
-        if (!IsPrepearedToUpdate())
-            PrepareToUpdate();
-
         const string failedMessagePrefix = "Failed to update storage:";
-
-        var currentVersion = GetCurrentVersion();
-        var lastVersion = GetLastVersion();
-
         /* Data strorage unavailable */
         if (!IsAvailable())
         {
@@ -58,12 +54,10 @@ public abstract class SQLStorageUpdaterBase
             return;
         }
 
-        /* taget version higher than last available */
-        if (targetVersion > lastVersion)
-        {
-            OnPreValidationFailed?.Invoke($"{failedMessagePrefix} taget version higher than last available");
-            return;
-        }
+        if (!IsPrepearedToUpdate())
+            PrepareToUpdate();
+
+        var currentVersion = GetCurrentVersion();
 
         var allMigrations = _migrationsProvider.GetMigrations(currentVersion, targetVersion);
         var migrations = allMigrations?.ToArray();
@@ -92,40 +86,28 @@ public abstract class SQLStorageUpdaterBase
 
         var isUpDirection = currentVersion < targetVersion;
 
-        var iterator = currentVersion;
-        var loopThreshold = targetVersion;
+        var migrationProcedType = isUpDirection
+            ? "install"
+            : "uninstall";
 
-        if (iterator >= migrations.Length) 
+        uint totalProceed = 0;
+        foreach (var migration in migrations) 
         {
-            iterator = (uint)migrations.Length - 1;
-            loopThreshold -= 1;
-        }
-
-        uint totalInstalled = 0;
-
-        while (iterator != loopThreshold)
-        {
-            var migrationToInstall = migrations[iterator];
-            if (migrationToInstall is null) 
-            {
-                OnInstallMigrationFailed?.Invoke("Migration list contains 'null' instance");
-                return;
-            }
-
             var queryText = isUpDirection
-                ? migrationToInstall.InstallQueryText
-                : migrationToInstall.UninstallQueryText;
+                ? migration.InstallQueryText
+                : migration.UninstallQueryText;
 
             try
             {
-                var name = migrationToInstall.Name;
                 ExecuteMigarionQuery(queryText);
-                iterator = isUpDirection
-                    ? ++iterator
-                    : --iterator;
+                OnInstallMigrationSucceed?.Invoke($"{migrationProcedType}: {migration.Name}");
 
-                OnInstallMigrationSucceed?.Invoke($"{migrationToInstall.Name}");
-                ++totalInstalled;
+                if (isUpDirection)
+                    IncrementVersion();
+                else 
+                    DecrementVersion();
+
+                ++totalProceed;
             }
             catch (Exception ex)
             {
@@ -135,7 +117,7 @@ public abstract class SQLStorageUpdaterBase
         }
 
         OnUpdateInstalledSucceed?.Invoke($"{targetVersion}"
-            , totalInstalled
+            , totalProceed
         );
     }
 }

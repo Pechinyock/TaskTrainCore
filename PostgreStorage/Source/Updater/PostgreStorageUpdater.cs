@@ -7,13 +7,13 @@ public sealed class PostgreStorageUpdater : SQLStorageUpdaterBase
     private const string POSTGRES_DEFAULT_DATABASE_NAME = "postgres";
 
     private readonly NpgsqlDataSource _dataSource;
-    private readonly PostgreStorageBasicSetup _basicSetup;
+    private readonly SQLStorageBasicSetupBase _basicSetup;
     private readonly string _homeDbName;
 
     public PostgreStorageUpdater(string homeDbName
         , string pgConnectionString
         , string serviceConnectionString
-        , IMigrationPorvider migrationPorvider) : base(serviceConnectionString, migrationPorvider)
+        , IMigrationsPorvider migrationPorvider) : base(serviceConnectionString, migrationPorvider)
     {
         var postgresDataSource = NpgsqlDataSource.Create(pgConnectionString);
 
@@ -23,7 +23,8 @@ public sealed class PostgreStorageUpdater : SQLStorageUpdaterBase
     }
 
     public PostgreStorageUpdater(IStorageConnection postgresConnection
-        , IStorageConnection serviceConnection) : base(serviceConnection)
+        , IStorageConnection serviceConnection
+        , IMigrationsPorvider migrationsProvider) : base(serviceConnection, migrationsProvider)
     {
         if (postgresConnection is null)
             throw new ArgumentNullException(nameof(postgresConnection));
@@ -50,6 +51,18 @@ public sealed class PostgreStorageUpdater : SQLStorageUpdaterBase
         _dataSource = serviceDataSource;
     }
 
+    public override uint GetCurrentVersion()
+    {
+        if (!IsPrepearedToUpdate())
+            return 0;
+
+        var metInfoProvider = new MetaInfoRepository(_dataSource);
+
+        return (uint)metInfoProvider.GetDatabaseVersion();
+    }
+
+    public override bool IsAvailable() => _basicSetup.IsConnected();
+
     protected override bool IsPrepearedToUpdate()
     {
         return _basicSetup.IsServiceDatabaseExists(_homeDbName);
@@ -64,32 +77,23 @@ public sealed class PostgreStorageUpdater : SQLStorageUpdaterBase
     {
         using (var cmd = _dataSource.CreateCommand(queryText)) 
         {
+            cmd.ExecuteScalar();
         }
     }
 
-    protected override uint GetCurrentVersion()
+    protected override void IncrementVersion()
     {
-        return 0;
+        var current = GetCurrentVersion();
+        ++current;
+        var metaInfoRepo = new MetaInfoRepository(_dataSource);
+        metaInfoRepo.SetDatabaseVersion(current);
     }
 
-    protected override uint GetLastVersion()
+    protected override void DecrementVersion()
     {
-        return 2;
-    }
-
-    protected override bool IsAvailable()
-    {
-        try
-        {
-            using (var cmd = _dataSource.CreateCommand("select 1;"))
-            {
-
-            }
-            return true;
-        }
-        catch 
-        {
-            return false;
-        }
+        var current = GetCurrentVersion();
+        --current;
+        var metaInfoRepo = new MetaInfoRepository(_dataSource);
+        metaInfoRepo.SetDatabaseVersion(current);
     }
 }

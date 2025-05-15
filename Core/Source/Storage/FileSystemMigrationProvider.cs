@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace TaskTrain.Core;
 
-public class FileSystemMigrationProvider : IMigrationPorvider
+public class FileSystemMigrationProvider : IMigrationsPorvider
 {
     private const string UP_SUBDIR = "up";
     private const string DOWN_SUBDIR = "down";
@@ -16,6 +16,16 @@ public class FileSystemMigrationProvider : IMigrationPorvider
             throw new ArgumentNullException(nameof(targetDirectory));
 
         _targetDirectoryPath = targetDirectory;
+    }
+
+    public uint GetLastVersion()
+    {
+        var upSubDirPath = Path.Combine(_targetDirectoryPath, UP_SUBDIR);
+        if (!Directory.Exists(upSubDirPath))
+            throw new DirectoryNotFoundException($"{upSubDirPath}");
+
+        var upMigrationsFullPaths = Directory.GetFiles(upSubDirPath);
+        return (uint)upMigrationsFullPaths.Length;
     }
 
     public IEnumerable<SQLMigration> GetMigrations(uint currentVersion, uint targetVersion)
@@ -34,8 +44,7 @@ public class FileSystemMigrationProvider : IMigrationPorvider
         var upMigrationsFullPaths = Directory.GetFiles(upSubDirPath);
         var downMigrationsFullPaths = Directory.GetFiles(downSubDirPath);
 
-        if (!IsMigartionsNamesValid(upMigrationsFullPaths, downMigrationsFullPaths))
-            throw new FormatException("Migration name has wrong format");
+        ValidateMigrationStructure(upMigrationsFullPaths, downMigrationsFullPaths);
 
         var versionsDifference = (int)(targetVersion - currentVersion);
         var isUpDirection = versionsDifference > 0;
@@ -44,10 +53,10 @@ public class FileSystemMigrationProvider : IMigrationPorvider
         var migrations = new SQLMigration[requestedMigrationsCount];
         var migrationFileCursour = (int)currentVersion;
 
-        if (!isUpDirection || migrationFileCursour >= upMigrationsFullPaths.Length) 
+        if (!isUpDirection || migrationFileCursour >= upMigrationsFullPaths.Length)
         {
             --migrationFileCursour;
-            if(migrationFileCursour <= 0)
+            if (migrationFileCursour <= 0)
                 migrationFileCursour = 0;
         }
 
@@ -57,10 +66,10 @@ public class FileSystemMigrationProvider : IMigrationPorvider
             var upMigrationName = Path.GetFileName(upMigrationsPath);
             var orderNumber = ExtractMigrationOrderNumber(upMigrationName);
 
-            var upMigrationQuery = File.ReadAllText(upMigrationsFullPaths[i]);
-            var downMigrationQuery = File.ReadAllText(downMigrationsFullPaths[i]);
+            var upMigrationQuery = File.ReadAllText(upMigrationsFullPaths[migrationFileCursour]);
+            var downMigrationQuery = File.ReadAllText(downMigrationsFullPaths[migrationFileCursour]);
 
-            migrations[i] = new SQLMigration 
+            migrations[i] = new SQLMigration
             {
                 Name = upMigrationName,
                 InstallQueryText = upMigrationQuery,
@@ -73,18 +82,31 @@ public class FileSystemMigrationProvider : IMigrationPorvider
         return migrations;
     }
 
-    private static bool IsMigartionsNamesValid(string[] upPaths, string[] downPaths)
+    /* [ISSUE] Comletly shit method
+     * 1) try catch should go out
+     * 2) should be public to call it before instalation (for example if updater is external programm)
+     * 3) provide this method into interafce level
+     * 4) might be a good idia to not use execptions here al all
+     */
+    private static void ValidateMigrationStructure(string[] upPaths, string[] downPaths)
     {
+        var issues = new StringBuilder();
         if (upPaths.Length != downPaths.Length)
-            return false;
+            throw new FormatException("Up and down migrations count mismatch!");
 
         var upNames = new string[upPaths.Length];
         for (int i = 0; i < upNames.Length; ++i)
         {
             upNames[i] = Path.GetFileName(upPaths[i]);
         }
-        if (!IsMatchNamePattern(upNames))
-            return false;
+        try
+        {
+            ValidateNames(upNames);
+        }
+        catch (FormatException ex) 
+        {
+            issues.Append(ex.Message);
+        }
 
         var downNames = new string[downPaths.Length];
         for (int i = 0; i < downNames.Length; ++i)
@@ -92,38 +114,71 @@ public class FileSystemMigrationProvider : IMigrationPorvider
             downNames[i] = Path.GetFileName(downPaths[i]);
         }
 
-        if (!IsMatchNamePattern(downNames))
-            return false;
+        try
+        {
+            ValidateNames(downNames);
+        }
+        catch (FormatException ex) 
+        {
+            issues.Append(ex.Message);
+        }
 
         var sortedUpNames = upNames.OrderBy(x => x).ToArray();
         var sortedDownNames = downNames.OrderBy(x => x).ToArray();
 
         for (int i = 0; i < sortedUpNames.Length; ++i)
         {
-            var orederUpNumber = ExtractMigrationOrderNumber(sortedUpNames[i]);
-            if (orederUpNumber == -1)
-                return false;
+            try
+            {
+                var orederUpNumber = ExtractMigrationOrderNumber(sortedUpNames[i]);
+                var orederDownNumber = ExtractMigrationOrderNumber(sortedDownNames[i]);
 
-            var orederDownNumber = ExtractMigrationOrderNumber(sortedDownNames[i]);
-            if (orederDownNumber == -1)
-                return false;
+                if (orederDownNumber <= 0 || orederDownNumber >= int.MaxValue)
+                    issues.AppendLine(GetClampErrorMessage(sortedDownNames[i], "down"));
 
-            if (orederUpNumber != orederDownNumber)
-                return false;
+                if (orederUpNumber <= 0 || orederUpNumber >= int.MaxValue)
+                    issues.AppendLine(GetClampErrorMessage(sortedUpNames[i], "up"));
+
+                if (orederUpNumber != orederDownNumber)
+                {
+                    issues.AppendLine($"Migration up: {sortedUpNames[i]}" +
+                        $" has different order in name with migration down: {sortedDownNames[i]}");
+                }
+            }
+            catch 
+            {
+            }
         }
 
-        return true;
+        if (issues.Length > 0)
+        {
+            throw new FormatException($"Migrations validation failed: {Environment.NewLine}" +
+                $" {issues}");
+        }
     }
 
-    private static bool IsMatchNamePattern(string[] migrationsNames)
+    private static string GetClampErrorMessage(string migrationName, string directionName)
+    {
+        return $"Migration {directionName}: {migrationName} has wrong format name." +
+            $" Numeric part has to be more than 0 and less than: {int.MaxValue}";
+    }
+
+    private static void ValidateNames(string[] migrationsNames)
     {
         var pattern = SQLMigration.MIGRATION_NAMING_PATTERN;
+        var sb = new StringBuilder();
         foreach (var name in migrationsNames)
         {
             if (!Regex.IsMatch(name, pattern))
-                return false;
+            {
+                sb.AppendLine($"Migration: '{name}' has wrong name format!");
+            }
         }
-        return true;
+
+        if (sb.Length > 0)
+        {
+            throw new FormatException($"{sb}");
+        }
     }
 
     private static int ExtractMigrationOrderNumber(string name)
@@ -134,16 +189,11 @@ public class FileSystemMigrationProvider : IMigrationPorvider
         {
             if (symbol == '-')
                 break;
-            if (!Char.IsDigit(symbol))
-                return -1;
-
             sb.Append(symbol);
         }
+
         var numericPart = sb.ToString();
-        if (!int.TryParse(numericPart, out var result))
-        {
-            return -1;
-        }
+        var result = int.Parse(numericPart);
         return result;
     }
 }

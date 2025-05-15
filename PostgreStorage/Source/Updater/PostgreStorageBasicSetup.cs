@@ -8,6 +8,8 @@ internal sealed class PostgreStorageBasicSetup : SQLStorageBasicSetupBase
 
     private static class RawSQL
     {
+        public static string Ping() => $@"select 1;";
+
         public static string IsDatabaseExisis(string dbName) =>
 @$"
 select exists(
@@ -136,6 +138,23 @@ $"create database \"{dbName}\"" +
         using (var cmd = _serviceSource.CreateCommand(createVersionTabeQuery))
         {
             cmd.ExecuteNonQuery();
+        }
+    }
+
+    public override bool IsConnected()
+    {
+        var pingQuery = RawSQL.Ping();
+        using (var cmd = _pgSource.CreateCommand(pingQuery)) 
+        {
+            try 
+            {
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch 
+            {
+                return false;
+            }
         }
     }
 }
