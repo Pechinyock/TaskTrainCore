@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\PostgreStorage\PostgreStorage.csproj" />
+	  <ProjectReference Include="..\..\TaskTrain.PostgreStorage\TaskTrain.PostgreStorage.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

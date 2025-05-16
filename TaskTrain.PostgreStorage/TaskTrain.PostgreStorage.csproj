@@ -8,6 +8,9 @@
 		<PublishAot>true</PublishAot>
 		<IsAotCompatible>true</IsAotCompatible>
 		<Configurations>Debug;Test;Release;Staging</Configurations>
+		<PackageId>$(ProjectName)</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Rj</Authors>
 	</PropertyGroup>
 
 	<!-- Настройки, которые зависят от конфигурации -->
@@ -48,8 +51,16 @@
 
 	<ItemGroup>
 		<Content Include="../.editorconfig" />
-
 		<None Remove="Directory.Build.props" />
+		<InternalsVisibleTo Include="PostgreStroage.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Npgsql" Version="9.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\TaskTrain.Core\TaskTrain.Core.csproj" />
 	</ItemGroup>
 
 </Project>

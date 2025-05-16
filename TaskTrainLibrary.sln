@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5D5A2EE2-E32B-4615-A0F8-D5F6D1E83372}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrainCore.Tests", "Tests\TaskTrainCore.Tests\TaskTrainCore.Tests.csproj", "{20E695C3-6ECC-4EB5-AE93-9718573D736B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrain.PostgreStroage.Tests", "Tests\TaskTrain.PostgreStroage.Tests\TaskTrain.PostgreStroage.Tests.csproj", "{A6111296-3B81-423D-A966-F35C2EF9276B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrain.Core", "TaskTrain.Core\TaskTrain.Core.csproj", "{21727ECD-9652-4F66-93E3-8879BC330D56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrain.PostgreStorage", "TaskTrain.PostgreStorage\TaskTrain.PostgreStorage.csproj", "{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Staging|Any CPU = Staging|Any CPU
+		Test|Any CPU = Test|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Staging|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Staging|Any CPU.Build.0 = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Staging|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Staging|Any CPU.Build.0 = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6111296-3B81-423D-A966-F35C2EF9276B}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{21727ECD-9652-4F66-93E3-8879BC330D56}.Test|Any CPU.Build.0 = Test|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Staging|Any CPU.ActiveCfg = Staging|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Staging|Any CPU.Build.0 = Staging|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Test|Any CPU.ActiveCfg = Test|Any CPU
+		{ED3A9224-C862-4F64-BAE3-60F7098BF1EA}.Test|Any CPU.Build.0 = Test|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20E695C3-6ECC-4EB5-AE93-9718573D736B} = {5D5A2EE2-E32B-4615-A0F8-D5F6D1E83372}
+		{A6111296-3B81-423D-A966-F35C2EF9276B} = {5D5A2EE2-E32B-4615-A0F8-D5F6D1E83372}
+	EndGlobalSection
+EndGlobal

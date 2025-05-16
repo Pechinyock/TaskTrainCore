@@ -1,6 +1,6 @@
 ﻿namespace TaskTrain.Core.Postgres;
 
-internal sealed class PostgreStorageConnection : IStorageConnection
+public sealed class PostgreStorageConnection : IStorageConnection
 {
     private readonly string _host;
     private readonly string _userName;
