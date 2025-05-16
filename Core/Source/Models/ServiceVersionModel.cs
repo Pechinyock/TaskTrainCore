@@ -2,7 +2,7 @@
 
 public class ServiceVersionModel
 {
-    public int Major { get; set; }
-    public int Minor { get; set; }
-    public int Patch { get; set; }
+    public uint Major { get; set; }
+    public uint Minor { get; set; }
+    public uint Patch { get; set; }
 }

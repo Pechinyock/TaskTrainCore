@@ -2,7 +2,7 @@
 
 namespace TaskTrain.Core.Postgres;
 
-public class MetaInfoRepository
+public class MetaInfoRepository : IMetaInfoRepository
 {
     #region Raw sql
     private static class RawSQL
@@ -14,6 +14,13 @@ public class MetaInfoRepository
     set database_version={version}
     where sigle_row=true;
 ";
+
+        public static string SetServiceVersion(uint version, uint versionType) =>
+$@"
+update meta.versions set service_version[{versionType}] = {version}
+    where sigle_row is true;
+";
+
     }
     #endregion
 
@@ -48,27 +55,37 @@ public class MetaInfoRepository
     public ServiceVersionModel GetServiceVersion() 
     {
         var sqlQuery = RawSQL.MetaInfo;
-        var fromDb = new int[3];
+        var result = new uint[3];
         using (var cmd = _dataSource.CreateCommand(sqlQuery))
         {
             var reader = cmd.ExecuteReader();
 
             while (reader.Read())
             {
-                fromDb = reader.GetFieldValue<int[]>(2);
+                var rawArray = reader.GetFieldValue<int[]>(2);
+                result = Array.ConvertAll(rawArray, val => (uint)val);
             }
         }
         return new ServiceVersionModel() 
         {
-            Major = fromDb[0],
-            Minor = fromDb[1],
-            Patch = fromDb[2]
+            Major = result[0],
+            Minor = result[1],
+            Patch = result[2]
         };
     }
 
     public void SetDatabaseVersion(uint value)
     {
         var sqlQuery = RawSQL.UpdateDbVersion(value);
+        using (var cmd = _dataSource.CreateCommand(sqlQuery))
+        {
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    public void SetServiceVersion(uint value, ServiceVersionTypeEnum type)
+    {
+        var sqlQuery = RawSQL.SetServiceVersion(value, (uint)type);
         using (var cmd = _dataSource.CreateCommand(sqlQuery))
         {
             cmd.ExecuteNonQuery();

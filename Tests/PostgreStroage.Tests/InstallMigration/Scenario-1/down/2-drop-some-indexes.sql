@@ -1,0 +1,1 @@
+﻿drop index "user-hub".idx_users_login;

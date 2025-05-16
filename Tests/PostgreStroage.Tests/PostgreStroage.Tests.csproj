@@ -33,4 +33,10 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="InstallMigration\Scenario-1\up\2-create-some-indexes.sql">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

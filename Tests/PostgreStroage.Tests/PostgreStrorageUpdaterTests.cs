@@ -83,5 +83,9 @@ public class PostgreStrorageUpdaterTests
 
         var dbVersion = metaInfoProvider.GetDatabaseVersion();
         var serviceVersion = metaInfoProvider.GetServiceVersion();
+        metaInfoProvider.SetServiceVersion(1, ServiceVersionTypeEnum.Major);
+        metaInfoProvider.SetServiceVersion(2, ServiceVersionTypeEnum.Minor);
+        metaInfoProvider.SetServiceVersion(3, ServiceVersionTypeEnum.Patch);
+        serviceVersion = metaInfoProvider.GetServiceVersion();
     }
 }

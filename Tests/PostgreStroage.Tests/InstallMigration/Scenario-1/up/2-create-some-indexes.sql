@@ -1,0 +1,1 @@
+﻿create index idx_users_login on "user-hub"."users" (login);
