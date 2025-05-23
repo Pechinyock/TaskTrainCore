@@ -1,0 +1,43 @@
+﻿namespace TaskTrain.Core;
+
+public enum InsertionStatusEnum 
+{
+    Success,
+    ConstraintViolation,
+}
+
+public enum UpdateStatusEnum 
+{
+    Success,
+    NotFound,
+    MultipleUpdates
+}
+
+public enum DeletionStatusEnum 
+{
+    Success,
+    NotFound,
+    MultipleDeletes
+}
+
+public interface IRepository<TEntity, TKey>
+    where TEntity : IEntity<TKey>
+{
+    TEntity GetById(TKey id);
+    Task<TEntity> GetByIdAsync(TKey id);
+
+    IEnumerable<TEntity> GetAll();
+    Task<IEnumerable<TEntity>> GetAllAsync();
+
+    InsertionStatusEnum Insert(TEntity entity);
+    Task<InsertionStatusEnum> InsertAsync(TEntity entity);
+
+    InsertionStatusEnum InsertBulck(IEnumerable<TEntity> entities);
+    Task<InsertionStatusEnum> InsertBulckAsync(IEnumerable<TEntity> entities);
+
+    UpdateStatusEnum Update(TEntity entity);
+    Task<UpdateStatusEnum> UpdateAsync(TEntity entity);
+
+    DeletionStatusEnum Delete(TEntity entity);
+    Task DeleteAsync(TEntity entity);
+}
