@@ -1,4 +1,4 @@
-﻿namespace TaskTrain.Core;
+﻿namespace TaskTrain.Core.Models;
 
 public class ServiceVersionModel
 {

@@ -13,11 +13,8 @@
 		<Authors>Rj</Authors>
 	</PropertyGroup>
 
-	<!-- Настройки, которые зависят от конфигурации -->
+	<!-- Configuration depended settings -->
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<NoWarn>1701;1702</NoWarn>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
 		<NoWarn>1701;1702</NoWarn>
 	</PropertyGroup>
 
@@ -28,21 +25,12 @@
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Staging|AnyCPU'">
 		<NoWarn>1701;1702</NoWarn>
-		<!-- Отключение генерации pdb файлов -->
 		<DebugSymbols>false</DebugSymbols>
 		<DebugType>none</DebugType>
 		<Optemize>true</Optemize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<NoWarn>1701;1702</NoWarn>
-		<!-- Отключение генерации pdb файлов -->
-		<DebugSymbols>false</DebugSymbols>
-		<DebugType>none</DebugType>
-		<Optemize>true</Optemize>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Staging|AnyCPU'">
 		<NoWarn>1701;1702</NoWarn>
 		<DebugSymbols>false</DebugSymbols>
 		<DebugType>none</DebugType>
@@ -56,11 +44,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Npgsql" Version="9.0.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\TaskTrain.Core\TaskTrain.Core.csproj" />
+		<PackageReference Include="Npgsql" Version="9.0.3" />
+		
+		<ProjectReference Include="..\TaskTrain.Core\TaskTrain.Core.csproj" />
 	</ItemGroup>
 
 </Project>

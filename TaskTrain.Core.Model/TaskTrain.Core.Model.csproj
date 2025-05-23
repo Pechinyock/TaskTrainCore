@@ -29,7 +29,7 @@
 		<DebugType>none</DebugType>
 		<Optemize>true</Optemize>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<NoWarn>1701;1702</NoWarn>
 		<DebugSymbols>false</DebugSymbols>
@@ -39,12 +39,7 @@
 
 	<ItemGroup>
 		<Content Include="../.editorconfig" />
-
 		<None Remove="Directory.Build.props" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Tasktrain.Core.Model\TaskTrain.Core.Model.csproj" />
 	</ItemGroup>
 
 </Project>

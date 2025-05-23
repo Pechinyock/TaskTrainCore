@@ -1,4 +1,6 @@
-﻿namespace TaskTrain.Core;
+﻿using TaskTrain.Core.Models;
+
+namespace TaskTrain.Core;
 
 public enum ServiceVersionTypeEnum 
 {

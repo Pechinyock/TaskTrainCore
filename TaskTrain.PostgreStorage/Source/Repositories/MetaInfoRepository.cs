@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using TaskTrain.Core.Models;
 
 namespace TaskTrain.Core.Postgres;
 
