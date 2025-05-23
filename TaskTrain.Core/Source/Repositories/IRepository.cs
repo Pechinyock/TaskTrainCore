@@ -1,14 +1,16 @@
 ﻿namespace TaskTrain.Core;
 
-public enum InsertionStatusEnum 
+public enum InsertionStatusEnum
 {
     Success,
     ConstraintViolation,
+    Failed
 }
 
 public enum UpdateStatusEnum 
 {
     Success,
+    Failed,
     NotFound,
     MultipleUpdates
 }
@@ -16,6 +18,7 @@ public enum UpdateStatusEnum
 public enum DeletionStatusEnum 
 {
     Success,
+    Failed,
     NotFound,
     MultipleDeletes
 }
@@ -31,9 +34,6 @@ public interface IRepository<TEntity, TKey>
 
     InsertionStatusEnum Insert(TEntity entity);
     Task<InsertionStatusEnum> InsertAsync(TEntity entity);
-
-    InsertionStatusEnum InsertBulck(IEnumerable<TEntity> entities);
-    Task<InsertionStatusEnum> InsertBulckAsync(IEnumerable<TEntity> entities);
 
     UpdateStatusEnum Update(TEntity entity);
     Task<UpdateStatusEnum> UpdateAsync(TEntity entity);
